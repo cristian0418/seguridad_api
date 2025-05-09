@@ -3,21 +3,21 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using seguridad_api.Data;
-using seguridad_api.Models; // Asegúrate de importar el namespace donde está la clase Usuario
+using seguridad_api.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Cadena de conexión a SQL Server Express
+// Configurar cadena de conexión a SQL Server Express
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ✅ Configurar Identity 
+// Configurar Identity con Usuario y roles
 builder.Services.AddIdentity<Usuario, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// 🔐 Configurar autenticación JWT
+// Configurar autenticación JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 🔧 Configurar CORS
+// Configurar CORS para permitir cualquier origen (útil en desarrollo)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -54,22 +54,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Habilitar CORS
-app.UseCors("AllowAll");
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
-
 // Crear roles si no existen
 using (var scope = app.Services.CreateScope())
 {
@@ -85,3 +69,19 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+
+// Configurar middlewares
+app.UseCors("AllowAll");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

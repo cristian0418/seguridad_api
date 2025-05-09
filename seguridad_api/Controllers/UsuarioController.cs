@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using seguridad_api.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace seguridad_api.Controllers
 {
@@ -7,18 +9,21 @@ namespace seguridad_api.Controllers
     [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
-        // 🔐 Endpoint protegido por autenticación
-        [HttpGet("perfil")]
-        [Authorize]
-        public IActionResult ObtenerPerfil()
-        {
-            var nombreUsuario = User.Identity?.Name;
+        private readonly UserManager<Usuario> _userManager;
 
-            return Ok(new
-            {
-                Mensaje = "¡Acceso concedido!",
-                Usuario = nombreUsuario
-            });
+        public UsuarioController(UserManager<Usuario> userManager)
+        {
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        }
+
+        [HttpGet("activos")]
+        public async Task<IActionResult> ObtenerUsuariosActivos()
+        {
+            var usuariosActivos = await _userManager.Users
+                                                    .Where(u => u.Activo)
+                                                    .ToListAsync();
+
+            return Ok(usuariosActivos);
         }
     }
 }
